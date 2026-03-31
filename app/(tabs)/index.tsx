@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,9 +10,10 @@ import {
   ScrollView,
 } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
-import { Camera, FlipHorizontal, Check, X } from 'lucide-react-native';
+import { Camera, FlipHorizontal, Check, X, RefreshCw } from 'lucide-react-native';
 import { performOCR, extractPriceFromText } from '@/services/ocr';
 import { addScannedItem } from '@/services/database';
+import { getExchangeRate } from '@/services/exchangeRate';
 import { router } from 'expo-router';
 
 export default function ScannerScreen() {
@@ -25,7 +26,26 @@ export default function ScannerScreen() {
   );
   const [exchangeRate, setExchangeRate] = useState<string>('36.50');
   const [showPreview, setShowPreview] = useState(false);
+  const [isFetchingRate, setIsFetchingRate] = useState(false);
+  const [lastRateUpdate, setLastRateUpdate] = useState<string | null>(null);
   const cameraRef = useRef<any>(null);
+
+  useEffect(() => {
+    loadExchangeRate();
+  }, []);
+
+  const loadExchangeRate = async () => {
+    setIsFetchingRate(true);
+    try {
+      const data = await getExchangeRate();
+      setExchangeRate(data.rate.toFixed(2));
+      setLastRateUpdate(new Date().toLocaleTimeString());
+    } catch (error) {
+      console.error('Error loading exchange rate:', error);
+    } finally {
+      setIsFetchingRate(false);
+    }
+  };
 
   if (!permission) {
     return (
@@ -197,7 +217,19 @@ export default function ScannerScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Exchange Rate (USD to VES)</Text>
+            <View style={styles.exchangeRateHeader}>
+              <Text style={styles.label}>Exchange Rate (USD to VES)</Text>
+              <TouchableOpacity
+                onPress={loadExchangeRate}
+                disabled={isFetchingRate}
+                style={styles.refreshButton}>
+                {isFetchingRate ? (
+                  <ActivityIndicator size="small" color="#2563eb" />
+                ) : (
+                  <RefreshCw size={16} color="#2563eb" />
+                )}
+              </TouchableOpacity>
+            </View>
             <TextInput
               style={styles.input}
               value={exchangeRate}
@@ -206,6 +238,11 @@ export default function ScannerScreen() {
               placeholder="36.50"
               placeholderTextColor="#9ca3af"
             />
+            {lastRateUpdate && (
+              <Text style={styles.rateUpdateText}>
+                Updated: {lastRateUpdate}
+              </Text>
+            )}
           </View>
 
           <View style={styles.conversionPreview}>
@@ -430,11 +467,27 @@ const styles = StyleSheet.create({
   inputGroup: {
     marginBottom: 20,
   },
+  exchangeRateHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  refreshButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#eff6ff',
+  },
+  rateUpdateText: {
+    fontSize: 12,
+    color: '#9ca3af',
+    marginTop: 6,
+    fontStyle: 'italic',
+  },
   label: {
     fontSize: 14,
     fontWeight: '600',
     color: '#374151',
-    marginBottom: 8,
   },
   input: {
     backgroundColor: '#ffffff',
