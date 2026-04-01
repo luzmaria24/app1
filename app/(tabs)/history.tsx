@@ -91,8 +91,18 @@ export default function HistoryScreen() {
     );
   };
 
-  const calculateTotal = () => {
+  const calculateTotalBolivares = () => {
     return items.reduce((sum, item) => sum + item.price_bolivares, 0);
+  };
+
+  const calculateTotalUSD = () => {
+    return items.reduce((sum, item) => {
+      if (item.currency === 'USD') {
+        return sum + item.price_original;
+      } else {
+        return sum + item.price_original / item.exchange_rate;
+      }
+    }, 0);
   };
 
   const formatDate = (dateString: string) => {
@@ -169,9 +179,12 @@ export default function HistoryScreen() {
         <View style={styles.totalContent}>
           <DollarSign size={32} color="#2563eb" />
           <View style={styles.totalTextContainer}>
-            <Text style={styles.totalLabel}>Total in Bolívares</Text>
+            <Text style={styles.totalLabel}>Total</Text>
             <Text style={styles.totalAmount}>
-              Bs {calculateTotal().toFixed(2)}
+              ${calculateTotalUSD().toFixed(2)}
+            </Text>
+            <Text style={styles.totalAmountSecondary}>
+              Bs {calculateTotalBolivares().toFixed(2)}
             </Text>
           </View>
         </View>
@@ -251,6 +264,12 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: '700',
     color: '#111827',
+    marginBottom: 4,
+  },
+  totalAmountSecondary: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#6b7280',
   },
   statsRow: {
     flexDirection: 'row',
