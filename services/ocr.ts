@@ -10,9 +10,7 @@ export const performOCR = async (imageUri: string): Promise<string> => {
     formData.append('base64Image', imageUri);
     formData.append('language', 'eng');
     formData.append('isOverlayRequired', 'false');
-    formData.append('detectOrientation', 'true');
-    formData.append('scale', 'true');
-    formData.append('OCREngine', '2');
+    formData.append('OCREngine', '1');
 
     const response = await fetch('https://api.ocr.space/parse/image', {
       method: 'POST',

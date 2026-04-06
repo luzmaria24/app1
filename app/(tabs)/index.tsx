@@ -136,19 +136,8 @@ export default function ScannerScreen() {
         rate
       );
 
-      Alert.alert('Success', 'Price saved successfully!', [
-        {
-          text: 'View History',
-          onPress: () => router.push('/history'),
-        },
-        {
-          text: 'Scan Another',
-          onPress: () => {
-            setShowPreview(false);
-            setCapturedPrice('');
-          },
-        },
-      ]);
+      setShowPreview(false);
+      setCapturedPrice('');
     } catch (error) {
       console.error('Error saving item:', error);
       Alert.alert('Error', 'Failed to save item. Please try again.');

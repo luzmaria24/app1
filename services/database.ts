@@ -51,7 +51,7 @@ export const deleteScannedItem = async (id: string) => {
 };
 
 export const clearAllScannedItems = async () => {
-  const { error } = await supabase.from('scanned_items').delete().neq('id', '');
+  const { error } = await supabase.from('scanned_items').delete().gt('id', '');
 
   if (error) {
     throw error;
